@@ -1,3 +1,7 @@
+ const v = {
+    audio:null,
+    uid:null
+ };
  // Setup scene, camera, renderer
  const scene = new THREE.Scene();
  const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -44,3 +48,24 @@
      camera.aspect = window.innerWidth / window.innerHeight;
      camera.updateProjectionMatrix();
  });
+ const loopAudio = (audio) => {
+    if (v.audio) {
+        v.audio.pause();
+        v.audio.remove();
+    }
+    v.audio = document.createElement("audio");
+    v.audio.src = "/pics/"+audio; // make sure to move this later to different folder
+    v.audio.loop = true; 
+    v.audio.volume = 0.5;
+    v.audio.load();
+    v.audio.play();
+};
+
+
+//-------------------------------------------------------------------------------------------
+// this should be deleted when adding the request name input pop up that will appear first
+// the loop audio will be triggered when name input is submitted (store in local storage as precaution)
+//update the UID store UID as variable under v.uid
+document.body.onclick = () => {
+    loopAudio("bgmusic.mp3");
+};

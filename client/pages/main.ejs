@@ -1,9 +1,11 @@
+<!-- Dominik Honzak -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Silversat Request</title>
+  <link rel="icon" href="/pics/logo3.png" />
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
@@ -11,13 +13,18 @@
 <div id="bg"></div>
 <div id="snackbar"></div>
 
-<div class="menu">
-    <div class="title btnHover" id="homeBtn">Silversat</div><button class="create" id="create">Request +</button>
+<div id="menu">
+    <img src="/pics/logo2.png"/>
+    <button class="hover" id="create">Request +</button>
 </div>
 <div id="content">
-  
+  <div id="requests">
+    <h1>Requests</h1>
+    <div id="requestList"></div>
+  </div>
 </div>
-<div class="footer">
+<div id="footer">
+    <div>SilverSat Request</div>
     <div id="userid">UID: N/A</div>
 </div>
   <!-- Include Socket.io JavaScript -->
