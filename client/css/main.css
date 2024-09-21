@@ -112,8 +112,8 @@ body {
     border-radius:20px;
     padding:20px;
     width:calc(var(--halfWidth) - 40px);
-    max-height:calc(60vh - 40px);
-    overlow-x:hidden;
+    max-height:calc(70vh - 40px);
+    overflow-x:hidden;
     overflow-y:auto;
   }
 .box h1 {
@@ -157,3 +157,27 @@ body {
     border-radius:40px;
     line-height:30px;
 }
+.popup-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 1s ease-in-out;
+    font-family: Arial, sans-serif;
+  }
+  
+  .fade-in {
+    opacity: 1;
+  }
+  
+  .fade-out {
+    opacity: 0;
+  }
+  

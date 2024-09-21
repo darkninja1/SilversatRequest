@@ -2,7 +2,8 @@
     audio:null,
     uid:null,
     uidBottom:document.getElementById('userid'),
-    enable:false
+    enable:false,
+    requestOpen:false
  };
  // Setup scene, camera, renderer
  const scene = new THREE.Scene();
@@ -19,7 +20,7 @@
  const earth = new THREE.Mesh(earthGeometry, earthMaterial);
  scene.add(earth);
 
-
+//values seem to be reflected the wrond direction due to something in animation
  const locations = [
     { lat: 40.7128, lon: -74.0060 }, // New York City
     { lat: 34.0522, lon: -118.2437 }, // Los Angeles
@@ -55,8 +56,8 @@ locations.forEach(location => {
  // Animation loop
  let angle = 0;
  const toRadians = (deg) => THREE.MathUtils.degToRad(deg);
- const fixLatitude = (lat) => /*180 -*/ lat;
- const fixLong = (long) => /*270 +*/ long;
+ const fixLatitude = (lat) => /*90 -*/ lat;
+ const fixLong = (long) => /*270 +*/ -long;
  const animate = () => {
      requestAnimationFrame(animate);
      
@@ -123,30 +124,75 @@ const uidAssign = (input1) => {
     }
 };
 const promptLatLong = function() {
+    if (v.requestOpen) {
+      return;
+    }
+    v.requestOpen = true;
     let box = document.createElement('div');
     box.classList.add('box');
     let h1 = document.createElement('h1');
     h1.textContent = "Lat & Long";
     box.appendChild(h1);
+    let h3 = document.createElement('h3');
+    h3.textContent = "Longitude";
+    box.appendChild(h3);
     let input1 = document.createElement('input');
-    input1.placeholder = "Input longitude here..."
+    input1.placeholder = "Input longitude here...";
     box.appendChild(input1);
+    let h31 = document.createElement('h3');
+    h31.textContent = "Latitude";
+    box.appendChild(h31);
     let input2 = document.createElement('input');
-    input2.placeholder = "Input latitude here..."
+    input2.placeholder = "Input latitude here...";
     box.appendChild(input2);
     let btn = document.createElement('button');
     btn.textContent = "Confirm";
     btn.classList.add('hover');
-    btn.onclick = function() {latlongSubmit(input1,input2);box.remove();};
+    btn.onclick = function() {
+      if (validateLatLong(input1.value, input2.value)) {
+        latlongSubmit(input1.value, input2.value);
+      } else {
+        addPopupAlert("Invalid Latitude or Longitude");
+      }
+      box.remove();
+      v.requestOpen = false;
+    };
     box.appendChild(btn);
+    
     document.body.appendChild(box);
     input1.focus();
   };
-const latlongSubmit = (input1, input2) => {
-    if (input1 && input2) {
-        //submit request write to database
+  
+  const validateLatLong = (lon, lat) => {
+    const lonVal = parseFloat(lon);
+    const latVal = parseFloat(lat);
+    const withinLongitudeRange = lonVal >= -180 && lonVal <= 180;
+    const withinLatitudeRange = latVal >= -90 && latVal <= 90;
+    
+    // ISS latitude range: approx -51.6 to 51.6 degrees due to its orbital inclination
+    const withinISSlatitude = latVal >= -51.6 && latVal <= 51.6;
+    
+    return withinLongitudeRange && withinLatitudeRange && withinISSlatitude;
+  };
+  
+  const latlongSubmit = (lon, lat) => {
+    if (lon && lat) {
+      // Submit request and write to the database
     }
-};
+  };
 
+  const addPopupAlert = (message) => {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'popup-alert fade-in';
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+  
+    setTimeout(() => {
+      alertDiv.classList.remove('fade-in');
+      alertDiv.classList.add('fade-out');
+      setTimeout(() => document.body.removeChild(alertDiv), 1000);
+    }, 3000);
+  };
+  
 //-------------------------------------------------------------------------------------------
 promptName();
