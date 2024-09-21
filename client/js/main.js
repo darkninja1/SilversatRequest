@@ -122,6 +122,31 @@ const uidAssign = (input1) => {
         v.enable = true;
     }
 };
+const promptLatLong = function() {
+    let box = document.createElement('div');
+    box.classList.add('box');
+    let h1 = document.createElement('h1');
+    h1.textContent = "Lat & Long";
+    box.appendChild(h1);
+    let input1 = document.createElement('input');
+    input1.placeholder = "Input longitude here..."
+    box.appendChild(input1);
+    let input2 = document.createElement('input');
+    input2.placeholder = "Input latitude here..."
+    box.appendChild(input2);
+    let btn = document.createElement('button');
+    btn.textContent = "Confirm";
+    btn.classList.add('hover');
+    btn.onclick = function() {latlongSubmit(input1,input2);box.remove();};
+    box.appendChild(btn);
+    document.body.appendChild(box);
+    input1.focus();
+  };
+const latlongSubmit = (input1, input2) => {
+    if (input1 && input2) {
+        //submit request write to database
+    }
+};
 
 //-------------------------------------------------------------------------------------------
 promptName();
