@@ -32,6 +32,7 @@ app.set('views', path.join(__dirname, 'client/pages'));
 app.use('/js', express.static(path.join(__dirname, 'client/js')));
 app.use('/css', express.static(path.join(__dirname, 'client/css')));
 app.use('/pics', express.static(path.join(__dirname, 'client/pics')));
+app.use('/music', express.static(path.join(__dirname, 'client/music')));
 
 app.get('/', (req, res) => {
   res.render('main');

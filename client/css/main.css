@@ -5,7 +5,9 @@
     --colorIII:rgba(255, 255, 255, 0.2);
     --colorIV:rgba(0, 0, 0, 0.2);
     --colorV:rgb(3, 115, 143);
+    --colorVI:rgba(0,0,0,0.6);
     --navHeight:75px;
+    --halfWidth:50%;
 }
 *::-webkit-scrollbar {
     display: none;
@@ -90,4 +92,61 @@ body {
 .hover:hover {
     opacity:0.65;
     cursor:pointer;
+}
+.box {
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:var(--colorVI);
+    backdrop-filter:blur(20px);
+    box-shadow:0px 0px 20px 1px var(--colorI);
+    color:var(--colorI);
+    border-radius:20px;
+    padding:20px;
+    width:calc(var(--halfWidth) - 40px);
+    max-height:calc(60vh - 40px);
+    overlow-x:hidden;
+    overflow-y:auto;
+  }
+.box h1 {
+    text-align:center;
+    color:var(--color);
+    font-size:40px;
+}
+.box input {
+    background:var(--bgColor);
+    color:var(--color);
+    border:none;
+    width:calc(100% - 30px);
+    border-radius:40px;
+    height:40px;
+    padding:5px 15px;
+    outline:none;
+    font-size:20px;
+    margin:10px 0px;
+}
+.box exit {
+    position:absolute;
+    top:20px;
+    right:30px;
+    padding:0;
+    font-size:40px;
+    color:var(--color);
+    transition:0.2s linear;
+}
+.box button {
+    text-align:center;
+    border:none;
+    outline:none;
+    margin:20px auto;
+    display:block;
+    box-shadow:0px 0px 20px 1px var(--color);
+    background:var(--nav);
+    color:var(--color);
+    font-size:20px;
+    height:40px;
+    padding:5px 15px;
+    border-radius:40px;
+    line-height:30px;
 }
