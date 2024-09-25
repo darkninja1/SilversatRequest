@@ -1,4 +1,4 @@
-<!-- Dominik Honzak -->
+<!-- Created by Dominik Honzak -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,11 +15,16 @@
 
 <div id="menu">
     <img src="/pics/logo2.png"/>
-    <button class="hover" id="create" onclick="promptLatLong();">Request +</button>
+    <button class="hover" id="create" onclick="promptRequest();">Request +</button>
 </div>
 <div id="content">
   <!-- <a class="twitter-timeline" href="https://twitter.com/SilverSatorg?ref_src=twsrc%5Etfw">Tweets by SilverSatorg</a>
   <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>  -->
+  <div id="key">
+      <h1>Key</h1>
+      <div><div style="background:red;"></div> = Requested</div>
+      <div><div style="background:#00c3ff;"></div> = Silversat</div>
+  </div>
   <div id="requests">
     <h1>Requests</h1>
     <div id="requestList"></div>

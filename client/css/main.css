@@ -64,10 +64,28 @@ body {
     width:100vw;
     height:calc(100vh - var(--navHeight));
 }
+#content > div > h1 {
+    text-align:center;
+}
 #content #requests {
     position: absolute;
     right:50px;
     top:0;
+}
+#content #key {
+    position:absolute;
+    top:0;
+    left:50px;
+}
+#content #key > div {
+    margin:10px;
+}
+#content #key > div > div {
+    width:12.5px;
+    height:12.5px;
+    border-radius:100%;
+    display:inline-block;
+    background:white;
 }
 .twitterfeed {
     position:absolute;
@@ -149,7 +167,8 @@ body {
     margin:20px auto;
     display:block;
     box-shadow:0px 0px 20px 1px var(--color);
-    background:var(--nav);
+    background:var(--colorIV);
+    width:100%;
     color:var(--color);
     font-size:20px;
     height:40px;
@@ -180,4 +199,11 @@ body {
   .fade-out {
     opacity: 0;
   }
-  
+  .flexContainer {
+    position:relative;
+    display:flex;
+    text-align: center;
+  }
+  .promptRequest {
+    flex: calc(100% / 3);
+  }
