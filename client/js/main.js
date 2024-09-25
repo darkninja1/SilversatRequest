@@ -204,6 +204,8 @@ const promptRequest = function() {
   document.body.appendChild(box);
 };
 const requestLocation = () => {
+  addPopupAlert("Feature is Currently Unavailable");
+  v.requestOpen = false; // move to the end of the confirmation window see below -->
   //request current location and put a confirmation window up
 };
 const promptLatLong = function() {
