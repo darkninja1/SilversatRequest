@@ -2,7 +2,8 @@
     audio:null,
     uid:null,
     uidBottom:document.getElementById('userid'),
-    requestOpen:true
+    requestOpen:true,
+    scheduleList:document.getElementById('scheduleList')
  };
  let locations = [];
  //important points
@@ -260,7 +261,25 @@ const promptLatLong = function() {
       // Submit request and write to the database
     }
   };
-
+  const generateSchedule = (schedule) => {
+    for (let i = 0;i < schedule.length;i++) {
+      let item = document.createElement('div');
+      item.classList.add("schedule");
+      let bullet = document.createElement('span');
+      bullet.classList.add("bullet");
+      bullet.classList.add(schedule.Type.toLowerCase());
+      item.appendChild(bullet);
+      let type = document.createElement('span');
+      type.textContent = schedule.Type;
+      item.appendChild(type);
+      let timeContainer = document.createElement('div');
+      let time = document.createElement('i');
+      time.textContent = schedule.Time.toLocaleString();
+      timeContainer.appendChild(time);
+      item.appendChild(timeContainer);
+      v.scheduleList.appendChild(item);
+    }
+  };
   const addPopupAlert = (message) => {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'popup-alert fade-in';

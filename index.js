@@ -48,6 +48,12 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+//reorder schedule when writing the database
+const reorderSchedule = (schedule) => {
+  let reorderedSchedule = schedule.sort((a, b) => a.Time - b.Time);
+  return reorderedSchedule;
+};
+
 // Handle socket.io connections
 io.on('connection', (socket) => {
   console.log('A user connected');
