@@ -1,3 +1,4 @@
+ const socket = io();
  const v = {
     audio:null,
     uid:null,
@@ -231,8 +232,10 @@ const promptLatLong = function() {
     btn.textContent = "Confirm";
     btn.classList.add('hover');
     btn.onclick = function() {
-      if (validateLatLong(input1.value, input2.value)) {
-        latlongSubmit(input1.value, input2.value);
+      let lon = parseFloat(input1.value);
+      let lat = parseFloat(input2.value);
+      if (validateLatLong(lon, lat)) {
+        latlongSubmit(lon, lat);
       } else {
         addPopupAlert("Invalid Latitude or Longitude");
       }
@@ -257,9 +260,9 @@ const promptLatLong = function() {
   };
   
   const latlongSubmit = (lon, lat) => {
-    if (lon && lat) {
-      // Submit request and write to the database
-    }
+      let uid = v.uid;
+      socket.emit("request", { uid, lat , lon });
+      addPopupAlert("Request Sent");
   };
   const generateSchedule = (schedule) => {
     for (let i = 0;i < schedule.length;i++) {
@@ -295,3 +298,5 @@ const promptLatLong = function() {
   
 //-------------------------------------------------------------------------------------------
 promptName();
+//-------------------------------------------------------------------------------------------
+//socket error and success function callbacks here

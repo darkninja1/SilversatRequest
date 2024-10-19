@@ -52,19 +52,32 @@ const log = (log) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
   // Event: User login
-  socket.on('request', async () => {
+  socket.on('request', ({ uid, lat, lon }) => {
     try {
       let requests = JSON.parse(fs.readFileSync(__dirname + '/client/json/requests.json', 'utf8'));
-      // requests.requests.push({});
+      requests.requests.push({ "Name": uid, "IP": "test", "Lat": lat, "Lon": lon, "Time": new Date().getTime() });
       fs.writeFileSync(__dirname + '/client/json/requests.json', JSON.stringify(requests), (err) => {
         if (err) throw err;
       });
-      // log("UID: "+uid+", Requested: "+lat+","+lon);
+      log("UID: "+uid+", Requested: "+lat+","+lon);
+      socket.emit("success", { message: 'Request Submitted' });
     } catch (err) {
       socket.emit('error', { message: 'Error during request', error: err });
     }
   });
-
+  socket.on('scheduleUpdate', ({ updatedSchedule }) => {
+    try {
+      let schedule = JSON.parse(fs.readFileSync(__dirname + '/client/json/schedule.json', 'utf8'));
+      schedule.schedule = reorderSchedule(updatedSchedule.schedule);
+      fs.writeFileSync(__dirname + '/client/json/requests.json', JSON.stringify(requests), (err) => {
+        if (err) throw err;
+      });
+      log("UID: "+uid+", Updated Schdule");
+      socket.emit("success", { message: 'Schedule Updated' });
+    } catch (err) {
+      socket.emit('error', { message: 'Error during schdule change', error: err });
+    }
+  });
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });
