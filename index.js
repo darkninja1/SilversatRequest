@@ -3,23 +3,17 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
-// const { MongoClient } = require('mongodb');
-
+const xss = require('xss');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Serve static files and set view engine (similar to your previous setup)
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'client/pages'));
-app.use('/js', express.static(path.join(__dirname, 'client/js')));
-app.use('/css', express.static(path.join(__dirname, 'client/css')));
-app.use('/pics', express.static(path.join(__dirname, 'client/pics')));
-app.use('/music', express.static(path.join(__dirname, 'client/music')));
+app.use(express.static("client"));
 
 app.get('/', (req, res) => {
-  res.render('main');
+    res.sendFile(path.join(__dirname, 'client/pages/home.html'));
 });
+
 // app.get('/login', (req, res) => {
 //     res.render('login');
 // });
@@ -38,9 +32,9 @@ const reorderSchedule = (schedule) => {
 };
 const log = (log) => {
   try {
-    let logs = JSON.parse(fs.readFileSync(__dirname + '/client/json/logs.json', 'utf8'));
-    logs.logs.push({ "ip":"replace with ip", "log":log });
-    fs.writeFileSync(__dirname + '/client/json/logs.json', JSON.stringify(logs), (err) => {
+    let logs = JSON.parse(fs.readFileSync(__dirname + '/server/json/logs.json', 'utf8'));
+    logs.logs.push({ "ip":"replace with ip", "log":xss(log) });
+    fs.writeFileSync(__dirname + '/server/json/logs.json', JSON.stringify(logs), (err) => {
       if (err) throw err;
     });
   } catch (err) {
@@ -54,9 +48,9 @@ io.on('connection', (socket) => {
   // Event: User login
   socket.on('request', ({ uid, lat, lon }) => {
     try {
-      let requests = JSON.parse(fs.readFileSync(__dirname + '/client/json/requests.json', 'utf8'));
-      requests.requests.push({ "Name": uid, "IP": "test", "Lat": lat, "Lon": lon, "Time": new Date().getTime() });
-      fs.writeFileSync(__dirname + '/client/json/requests.json', JSON.stringify(requests), (err) => {
+      let requests = JSON.parse(fs.readFileSync(__dirname + '/server/json/requests.json', 'utf8'));
+      requests.requests.push({ "Name": xss(uid), "IP": "test", "Lat": xss(lat), "Lon": xss(lon), "Time": new Date().getTime() });
+      fs.writeFileSync(__dirname + '/server/json/requests.json', JSON.stringify(requests), (err) => {
         if (err) throw err;
       });
       log("UID: "+uid+", Requested: "+lat+","+lon);
@@ -67,9 +61,9 @@ io.on('connection', (socket) => {
   });
   socket.on('scheduleUpdate', ({ updatedSchedule }) => {
     try {
-      let schedule = JSON.parse(fs.readFileSync(__dirname + '/client/json/schedule.json', 'utf8'));
-      schedule.schedule = reorderSchedule(updatedSchedule.schedule);
-      fs.writeFileSync(__dirname + '/client/json/requests.json', JSON.stringify(requests), (err) => {
+      let schedule = JSON.parse(fs.readFileSync(__dirname + '/server/json/schedule.json', 'utf8'));
+      schedule.schedule = reorderSchedule(xss(updatedSchedule.schedule));
+      fs.writeFileSync(__dirname + '/server/json/requests.json', JSON.stringify(requests), (err) => {
         if (err) throw err;
       });
       log("UID: "+uid+", Updated Schdule");

@@ -1,0 +1,45 @@
+<!-- Created by Dominik Honzak -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silversat Request</title>
+  <link rel="icon" href="/pics/logo3.png" />
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="snackbar"></div>
+
+<div id="menu">
+    <img src="/pics/logo2.png"/>
+    <button class="hover" id="create" onclick="promptRequest();">Request +</button>
+</div>
+<div id="content">
+  <!-- <a class="twitter-timeline" href="https://twitter.com/SilverSatorg?ref_src=twsrc%5Etfw">Tweets by SilverSatorg</a>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>  -->
+  <div id="key">
+      <h1>Key</h1>
+      <div><div style="background:red;"></div> = Requested</div>
+      <div><div style="background:#00c3ff;"></div> = Silversat HQ</div>
+      <div><div style="background:white;"><div style="background:url('/pics/null.png') center center no-repeat;background-size:cover;width:100%;height:100%;"></div></div> = Null Island</div>
+  </div>
+  <div id="schedule">
+    <h1>Schedule</h1>
+    <div id="scheduleList">
+      
+    </div>
+  </div>
+</div>
+<div id="footer">
+    <div>SilverSat Request</div>
+    <div id="userid">UID: N/A</div>
+</div>
+  <!-- Include Socket.io JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/home.js"></script>
+</body>
+</html>
