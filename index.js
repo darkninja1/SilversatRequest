@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
   socket.on('request', ({ uid, lat, lon }) => {
     try {
       let requests = JSON.parse(fs.readFileSync(__dirname + '/server/json/requests.json', 'utf8'));
-      requests.requests.push({ "Name": xss(uid), "IP": "test", "Lat": xss(lat), "Lon": xss(lon), "Time": new Date().getTime() });
+      requests.requests.push({ "Name": xss(uid), "IP": "test", "Lat": parseFloat(xss(lat)), "Lon": parseFloat(xss(lon)), "Time": new Date().getTime() });
       fs.writeFileSync(__dirname + '/server/json/requests.json', JSON.stringify(requests), (err) => {
         if (err) throw err;
       });

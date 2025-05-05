@@ -7,116 +7,201 @@
     scheduleList:document.getElementById('scheduleList')
  };
  let locations = [];
- //important points
+//important points
 let locationsImportant = [
   { lat:0, lon:0, texture:"/pics/null.png", color:0x00ff00, type:"plane" }, //null island
   { lat: 39.15837166021878, lon: -76.89932926112813, texture:"/pics/logo.png", color:null, type:"plane", width: 1.35, height: 0.5}, //apl center
   { lat: 39.15837166021878, lon: -76.89932926112813, texture:null, color:0x00c3ff, type:null }
-  ];
- // Setup scene, camera, renderer
- const scene = new THREE.Scene();
- const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
- const renderer = new THREE.WebGLRenderer({ antialias: true });
- renderer.setSize(window.innerWidth, window.innerHeight);
- document.getElementById("content").appendChild(renderer.domElement);
+];
 
- // Create Earth sphere
- const radius = 5;
- const earthGeometry = new THREE.SphereGeometry(radius, 64, 64);
- const earthTexture = new THREE.TextureLoader().load('/pics/earth-water.png');
- const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
- const earth = new THREE.Mesh(earthGeometry, earthMaterial);
- scene.add(earth);
+// Setup scene, camera, renderer
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById("content").appendChild(renderer.domElement);
 
-//values seem to be reflected the wrond direction due to something in animation
+// Create Earth sphere
+const radius = 5;
+const earthGeometry = new THREE.SphereGeometry(radius, 64, 64);
+const earthTexture = new THREE.TextureLoader().load('/pics/earth-water.png');
+const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+scene.add(earth);
 
 const points = [];
 
-locations.forEach(location => {
-    let pointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const pointGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Small marker
-    if (location.lat ==0 && location.lon ==0) {
-        pointMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); //null island
-    }
-    const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
-    pointMesh.frustumCulled = false;
-    scene.add(pointMesh);
-    points.push({ mesh: pointMesh, lat: location.lat, lon: location.lon });
-});
+// Function to convert geographic coords to 3D position
+const positionOnSphere = (lat, lon, radius) => {
+  const latRad = THREE.MathUtils.degToRad(lat);
+  const lonRad = THREE.MathUtils.degToRad(lon);
+  return new THREE.Vector3(
+    radius * Math.cos(latRad) * Math.cos(lonRad),
+    radius * Math.sin(latRad),
+    radius * Math.cos(latRad) * Math.sin(lonRad)
+  );
+};
 
-
-locationsImportant.forEach(location => {
-  let pointTexture = location.texture || null;
-  let pointColor = location.color || 0x00FFFFFF;
+// Initialize all points
+[...locations, ...locationsImportant].forEach(location => {
   let pointGeometry, pointMaterial;
-  let transparency = false;
+  
   if (location.type === "plane") {
-    let planeWidth = location.width || 0.5;
-    let planeHeight = location.height || 0.5;
+    const planeWidth = location.width || 0.5;
+    const planeHeight = location.height || 0.5;
     pointGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
   } else {
     pointGeometry = new THREE.SphereGeometry(0.1, 16, 16);
   }
-  let pointTextureMap;
-  if (pointTexture) {
-    pointTextureMap = new THREE.TextureLoader().load(pointTexture);
-    transparency = true;
+
+  // Create material
+  if (location.texture) {
+    const texture = new THREE.TextureLoader().load(location.texture);
+    pointMaterial = new THREE.MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+  } else {
+    pointMaterial = new THREE.MeshStandardMaterial({
+      color: location.color || 0xff0000,
+      emissive: 0x000000,
+      emissiveIntensity: 0.3
+    });
   }
-  pointMaterial = new THREE.MeshStandardMaterial({
-    color: pointColor,
-    map: pointTextureMap,
-    transparent: transparency, // Enable transparency
-    opacity: 1, // Full opacity for texture
-    emissive: 0x000000,
-    emissiveIntensity: 0.3,
-    side: THREE.FrontSide
-  });
-  
+
   const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
   pointMesh.frustumCulled = false;
+  
+  // Set initial position
+  const position = positionOnSphere(location.lat, location.lon, radius);
+  pointMesh.position.copy(position);
+  
+  // Orient planes to face outward
+  if (location.type === "plane") {
+    pointMesh.lookAt(position.clone().multiplyScalar(2));
+  }
+
   scene.add(pointMesh);
-  points.push({ mesh: pointMesh, lat: location.lat, lon: location.lon });
+  points.push(pointMesh);
 });
 
- // Lighting
- const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
- scene.add(ambientLight);
+// Lighting - Sun simulation
+const sunlight = new THREE.DirectionalLight(0xffffff, 1);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.width = 2048;
+sunlight.shadow.mapSize.height = 2048;
+scene.add(sunlight);
 
- const pointLight = new THREE.PointLight(0xffffff, 1);
- pointLight.position.set(10, 10, 10);
- scene.add(pointLight);
+const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+scene.add(ambientLight);
 
- // Camera position
- camera.position.z = 15;
+// Update sun position based on current time
+const updateSunPosition = () => {
+  const now = new Date();
+  const hoursUTC = now.getUTCHours() + now.getUTCMinutes()/60;
+  
+  // Sun moves 15 degrees per hour (360/24)
+  const sunLongitude = -180 + (hoursUTC * 15);
+  const sunPosition = positionOnSphere(0, sunLongitude, 100); // Far away light
+  
+  sunlight.position.copy(sunPosition);
+  sunlight.lookAt(0, 0, 0);
+  
+  // Update Earth's night side with ambient light
+  const nightIntensity = 0.1 + 0.4 * (1 - Math.abs(sunLongitude % 180)/90);
+  ambientLight.intensity = nightIntensity;
+};
 
- // Animation loop
- let angle = 0;
- const toRadians = (deg) => THREE.MathUtils.degToRad(deg);
- const fixLatitude = (lat) => /*90 -*/ lat;
- const fixLong = (long) => /*270 +*/ -long;
- const animate = () => {
-    requestAnimationFrame(animate);
+// Camera position and controls
+camera.position.z = 15;
 
-earth.rotation.y += 0.002;
+let angle = 0;
+let autoRotate = true;
+let rotationSpeed = 0.002;
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
 
-points.forEach(point => {
-  const latRad = toRadians(fixLatitude(point.lat));
-  const lonRad = toRadians(fixLong(point.lon));
-  const currentLonRad = lonRad - earth.rotation.y;
-
-  const x = radius * Math.cos(latRad) * Math.cos(currentLonRad);
-  const y = radius * Math.sin(latRad);
-  const z = radius * Math.cos(latRad) * Math.sin(currentLonRad);
-
-  point.mesh.position.set(x, y, z);
-  let outwardVector = new THREE.Vector3(x, y, z).normalize();
-  point.mesh.lookAt(outwardVector.add(point.mesh.position));  // Rotate the plane to face the Earth if it's a plane
+// Fixed mouse controls (corrected direction)
+renderer.domElement.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
 });
 
-renderer.render(scene, camera);
- };
+renderer.domElement.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    autoRotate = false;
+    
+    const deltaMove = {
+      x: e.clientX - previousMousePosition.x,
+      y: e.clientY - previousMousePosition.y
+    };
+    
+    // Fixed: Changed += to -= for correct direction
+    angle -= deltaMove.x * 0.01;
+    
+    previousMousePosition = { x: e.clientX, y: e.clientY };
+  }
+});
 
- animate();
+renderer.domElement.addEventListener('mouseup', () => {
+  isDragging = false;
+  setTimeout(() => autoRotate = true, 3000);
+});
+
+// Touch controls (also corrected)
+renderer.domElement.addEventListener('touchstart', (e) => {
+  isDragging = true;
+  previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  e.preventDefault();
+});
+
+renderer.domElement.addEventListener('touchmove', (e) => {
+  if (isDragging) {
+    autoRotate = false;
+    
+    const deltaMove = {
+      x: e.touches[0].clientX - previousMousePosition.x,
+      y: e.touches[0].clientY - previousMousePosition.y
+    };
+    
+    angle -= deltaMove.x * 0.01;
+    
+    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  e.preventDefault();
+});
+
+// Animation loop
+const animate = () => {
+  requestAnimationFrame(animate);
+
+  // Update sun position based on current time
+  updateSunPosition();
+
+  // Auto-rotate camera if not dragging
+  if (autoRotate) {
+    angle += rotationSpeed;
+  }
+  
+  // Update camera position
+  camera.position.x = 15 * Math.sin(angle);
+  camera.position.z = 15 * Math.cos(angle);
+  camera.lookAt(0, 0, 0);
+
+  renderer.render(scene, camera);
+};
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Initial setup
+updateSunPosition();
+animate();
 
  // Handle window resizing
  window.addEventListener('resize', () => {
