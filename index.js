@@ -8,6 +8,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+//add nodemailer to send list of most popular requests each week then archive requests and reset
+
 app.use(express.static("client"));
 
 app.get('/', (req, res) => {
