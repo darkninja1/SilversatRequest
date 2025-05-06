@@ -1,3 +1,4 @@
+ //Copyrite Dominik Honzak 2024
  const socket = io();
  const v = {
     audio:null,
@@ -33,12 +34,13 @@ const points = [];
 
 // Function to convert geographic coords to 3D position
 const positionOnSphere = (lat, lon, radius) => {
-  const latRad = THREE.MathUtils.degToRad(lat);
-  const lonRad = THREE.MathUtils.degToRad(lon);
+  const phi = (90 - lat) * Math.PI / 180; // Convert latitude to phi (0 at north pole)
+  const theta = (lon + 180) * Math.PI / 180; // Convert longitude to theta
+  
   return new THREE.Vector3(
-    radius * Math.cos(latRad) * Math.cos(lonRad),
-    radius * Math.sin(latRad),
-    radius * Math.cos(latRad) * Math.sin(lonRad)
+    -radius * Math.sin(phi) * Math.cos(theta), // Note: negative X for correct orientation
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
   );
 };
 
@@ -60,13 +62,19 @@ const positionOnSphere = (lat, lon, radius) => {
     pointMaterial = new THREE.MeshStandardMaterial({
       map: texture,
       transparent: true,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      emissive: 0x333333,  // Base glow color (dark gray)
+      emissiveIntensity: 1,  // Glow strength (0-1)
+      roughness: 0.1,  // Makes surface more reflective
+      metalness: 0.1  // Adds metallic shine
     });
   } else {
     pointMaterial = new THREE.MeshStandardMaterial({
       color: location.color || 0xff0000,
-      emissive: 0x000000,
-      emissiveIntensity: 0.3
+      emissive: location.color || 0xff0000,  // Same as base color
+      emissiveIntensity: 0.3,  // Subtle glow
+      roughness: 0.3,
+      metalness: 0.7
     });
   }
 
@@ -108,7 +116,7 @@ const updateSunPosition = () => {
   sunlight.position.copy(sunPosition);
   sunlight.lookAt(0, 0, 0);
   
-  // Update Earth's night side with ambient light
+  // Update Earth's night side with ambient light (might not be right)
   const nightIntensity = 0.1 + 0.4 * (1 - Math.abs(sunLongitude % 180)/90);
   ambientLight.intensity = nightIntensity;
 };
@@ -122,7 +130,7 @@ let rotationSpeed = 0.002;
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 
-// Fixed mouse controls (corrected direction)
+// Fixed mouse controls
 renderer.domElement.addEventListener('mousedown', (e) => {
   isDragging = true;
   previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -137,7 +145,6 @@ renderer.domElement.addEventListener('mousemove', (e) => {
       y: e.clientY - previousMousePosition.y
     };
     
-    // Fixed: Changed += to -= for correct direction
     angle -= deltaMove.x * 0.01;
     
     previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -149,7 +156,7 @@ renderer.domElement.addEventListener('mouseup', () => {
   setTimeout(() => autoRotate = true, 3000);
 });
 
-// Touch controls (also corrected)
+// Touch controls
 renderer.domElement.addEventListener('touchstart', (e) => {
   isDragging = true;
   previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -199,9 +206,49 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Add starfield background
+const createStarfield = (numStars = 2000) => {
+  const starsGeometry = new THREE.BufferGeometry();
+  const starsMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.1,
+    transparent: true,
+    opacity: 0.8
+  });
+
+  const starVertices = [];
+  const radius = 100; // Sphere radius for star distribution
+
+  for (let i = 0; i < numStars; i++) {
+    // Random spherical coordinates
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    
+    // Convert to Cartesian coordinates
+    const x = radius * Math.sin(phi) * Math.cos(theta);
+    const y = radius * Math.sin(phi) * Math.sin(theta);
+    const z = radius * Math.cos(phi);
+    
+    starVertices.push(x, y, z);
+    
+    // Random size variation
+    if (Math.random() > 0.9) {
+      starsMaterial.size = 0.4; // Some bigger stars
+    } else {
+      starsMaterial.size = 0.2 + Math.random() * 0.05;
+    }
+  }
+
+  starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+  const starField = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(starField);
+};
+
+
 // Initial setup
 updateSunPosition();
 animate();
+createStarfield(5000);
 
  // Handle window resizing
  window.addEventListener('resize', () => {
