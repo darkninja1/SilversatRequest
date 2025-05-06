@@ -7,12 +7,12 @@
     requestOpen:true,
     scheduleList:document.getElementById('scheduleList')
  };
- let locations = [];
+ let locations = [{ lat: 39.15837166021878, lon: -76.89932926112813, texture:null, color:0x00c3ff, type:null }];
 //important points
 let locationsImportant = [
   { lat:0, lon:0, texture:"/pics/null.png", color:0x00ff00, type:"plane" }, //null island
   { lat: 39.15837166021878, lon: -76.89932926112813, texture:"/pics/logo.png", color:null, type:"plane", width: 1.35, height: 0.5}, //apl center
-  { lat: 39.15837166021878, lon: -76.89932926112813, texture:null, color:0x00c3ff, type:null }
+  // { lat: 39.15837166021878, lon: -76.89932926112813, texture:null, color:0x00c3ff, type:null }
 ];
 
 // Setup scene, camera, renderer
@@ -45,54 +45,56 @@ const positionOnSphere = (lat, lon, radius) => {
 };
 
 // Initialize all points
-[...locations, ...locationsImportant].forEach(location => {
-  let pointGeometry, pointMaterial;
-  
-  if (location.type === "plane") {
-    const planeWidth = location.width || 0.5;
-    const planeHeight = location.height || 0.5;
-    pointGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
-  } else {
-    pointGeometry = new THREE.SphereGeometry(0.1, 16, 16);
-  }
+const locationsRender = () => {
+  [...locations, ...locationsImportant].forEach(location => {
+    let pointGeometry, pointMaterial;
+    
+    if (location.type === "plane") {
+      const planeWidth = location.width || 0.5;
+      const planeHeight = location.height || 0.5;
+      pointGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    } else {
+      pointGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+    }
 
-  // Create material
-  if (location.texture) {
-    const texture = new THREE.TextureLoader().load(location.texture);
-    pointMaterial = new THREE.MeshStandardMaterial({
-      map: texture,
-      transparent: true,
-      side: THREE.DoubleSide,
-      emissive: 0x333333,  // Base glow color (dark gray)
-      emissiveIntensity: 1,  // Glow strength (0-1)
-      roughness: 0.1,  // Makes surface more reflective
-      metalness: 0.1  // Adds metallic shine
-    });
-  } else {
-    pointMaterial = new THREE.MeshStandardMaterial({
-      color: location.color || 0xff0000,
-      emissive: location.color || 0xff0000,  // Same as base color
-      emissiveIntensity: 0.3,  // Subtle glow
-      roughness: 0.3,
-      metalness: 0.7
-    });
-  }
+    // Create material
+    if (location.texture) {
+      const texture = new THREE.TextureLoader().load(location.texture);
+      pointMaterial = new THREE.MeshStandardMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        emissive: 0x333333,  // Base glow color (dark gray)
+        emissiveIntensity: 1,  // Glow strength (0-1)
+        roughness: 0.1,  // Makes surface more reflective
+        metalness: 0.1  // Adds metallic shine
+      });
+    } else {
+      pointMaterial = new THREE.MeshStandardMaterial({
+        color: location.color || 0xff0000,
+        emissive: location.color || 0xff0000,  // Same as base color
+        emissiveIntensity: 0.3,  // Subtle glow
+        roughness: 0.3,
+        metalness: 0.7
+      });
+    }
 
-  const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
-  pointMesh.frustumCulled = false;
-  
-  // Set initial position
-  const position = positionOnSphere(location.lat, location.lon, radius);
-  pointMesh.position.copy(position);
-  
-  // Orient planes to face outward
-  if (location.type === "plane") {
-    pointMesh.lookAt(position.clone().multiplyScalar(2));
-  }
+    const pointMesh = new THREE.Mesh(pointGeometry, pointMaterial);
+    pointMesh.frustumCulled = false;
+    
+    // Set initial position
+    const position = positionOnSphere(location.lat, location.lon, radius);
+    pointMesh.position.copy(position);
+    
+    // Orient planes to face outward
+    if (location.type === "plane") {
+      pointMesh.lookAt(position.clone().multiplyScalar(2));
+    }
 
-  scene.add(pointMesh);
-  points.push(pointMesh);
-});
+    scene.add(pointMesh);
+    points.push(pointMesh);
+  });
+};
 
 // Lighting - Sun simulation
 const sunlight = new THREE.DirectionalLight(0xffffff, 1);
@@ -110,7 +112,7 @@ const updateSunPosition = () => {
   const hoursUTC = now.getUTCHours() + now.getUTCMinutes()/60;
   
   // Sun moves 15 degrees per hour (360/24)
-  const sunLongitude = -180 + (hoursUTC * 15);
+  const sunLongitude = -180 + -(hoursUTC * 15);
   const sunPosition = positionOnSphere(0, sunLongitude, 100); // Far away light
   
   sunlight.position.copy(sunPosition);
@@ -298,6 +300,7 @@ const uidAssign = (input1) => {
     v.uid = input1.value ? input1.value : "Anonymous";
     v.uidBottom.textContent = `UID: ${v.uid}`;
     loopAudio("bgmusic.mp3");
+    socket.emit('render');
     v.requestOpen = false;
 };
 const promptRequest = function() {
@@ -431,4 +434,19 @@ const promptLatLong = function() {
 //-------------------------------------------------------------------------------------------
 promptName();
 //-------------------------------------------------------------------------------------------
+socket.on('success', () => {
+  
+});
+socket.on('fail', () => {
+  
+});
+socket.on('404', () => {
+  // location.href = '/404';
+});
+
+socket.on('render', (requestList) => {
+  locations = requestList.requests;
+  console.log(locations);
+  locationsRender();
+});
 //socket error and success function callbacks here

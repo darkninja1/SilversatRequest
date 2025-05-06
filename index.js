@@ -46,6 +46,18 @@ const log = (log) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
   // Event: User login
+  socket.on('render', () => {
+    try {
+      let requestsJSON = JSON.parse(fs.readFileSync(__dirname + '/server/json/requests.json', 'utf8'));
+      let newRequests = [];
+      for (let i = 0;i < Object.keys(requestsJSON.requests).length;i++) {
+        newRequests.push({lat:requestsJSON.requests[i].Lat,lon:requestsJSON.requests[i].Lon});
+      }
+      socket.emit("render", { requests: newRequests });
+    } catch (err) {
+      socket.emit('error', { message: 'Error during request', error: err });
+    }
+  });
   socket.on('request', ({ uid, lat, lon }) => {
     try {
       let requests = JSON.parse(fs.readFileSync(__dirname + '/server/json/requests.json', 'utf8'));
