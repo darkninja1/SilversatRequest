@@ -7,6 +7,7 @@ const xss = require('xss');
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const nodemailer = require('nodemailer');
 
 //add nodemailer to send list of most popular requests each week then archive requests and reset
 
@@ -16,10 +17,69 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'client/pages/home.html'));
 });
 
-// app.get('/login', (req, res) => {
-//     res.render('login');
-// });
+const SENDER = 'no-reply@silversat.org';
+const APPPASS = 'your-app-password'; // Gmail App Password (this has to be created)
 
+const RECIPIENTS = ['dominik@silversat.org'];
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: SENDER,
+    pass: APPPASS
+  }
+});
+
+// Main function with parameters
+const sendEmail = (recipientsArray, subjectLine, contentHTML) => {
+  const mailOptions = {
+    from: SENDER,
+    to: recipientsArray.join(','),
+    subject: subjectLine,
+    html: contentHTML
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error('❌ Failed to send email:', err);
+    } else {
+      console.log('✅ Email sent:', info.response);
+    }
+  });
+};
+
+const sendSummary = () => {
+  try {
+    const requestsPath = path.join(__dirname, 'requests.json');
+    const requests = JSON.parse(fs.readFileSync(requestsPath, 'utf8')).requests || [];
+
+    const htmlTable = `
+      <h2>📍 Location Request Report</h2>
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
+        <thead style="background:#f0f0f0;">
+          <tr>
+            <th>#</th><th>Name</th><th>Lat</th><th>Lon</th><th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${requests.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${r.Name}</td>
+              <td>${r.Lat}</td>
+              <td>${r.Lon}</td>
+              <td>${new Date(r.Time).toLocaleString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+    sendEmail(RECIPIENTS, '📬 Location Request Report', htmlTable);
+  }
+  catch (err) {
+    console.log(err);
+  }
+};
 
 // Start the server
 const PORT = process.env.PORT || 3000;
