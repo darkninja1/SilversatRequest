@@ -73,7 +73,7 @@ const locationsRender = () => {
       pointMaterial = new THREE.MeshStandardMaterial({
         color: location.color || 0xff0000,
         emissive: location.color || 0xff0000,  // Same as base color
-        emissiveIntensity: 0.3,  // Subtle glow
+        emissiveIntensity: 0.9,  // Subtle glow
         roughness: 0.3,
         metalness: 0.7
       });
